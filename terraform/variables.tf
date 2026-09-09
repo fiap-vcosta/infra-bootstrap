@@ -68,7 +68,7 @@ variable "ci_project_roles" {
 variable "network_name" {
   type        = string
   description = "Nome da VPC dedicada."
-  default     = "techchallenge-vpc"
+  default     = "tech-challenge-vpc"
 }
 
 variable "subnet_cidr" {
@@ -116,7 +116,7 @@ variable "psa_range_prefix_length" {
 variable "registry_repository_id" {
   type        = string
   description = "Repositório Docker do Artifact Registry."
-  default     = "techchallenge"
+  default     = "tech-challenge"
 }
 
 variable "registry_keep_versions" {
@@ -128,13 +128,13 @@ variable "registry_keep_versions" {
 variable "runtime_service_account_id" {
   type        = string
   description = "Account ID da service account de runtime da API."
-  default     = "techchallenge-api"
+  default     = "tech-challenge-api"
 }
 
 variable "k8s_namespace" {
   type        = string
   description = "Namespace Kubernetes da API (contrato com o infra-k8s)."
-  default     = "techchallenge"
+  default     = "tech-challenge"
 }
 
 variable "k8s_service_account" {

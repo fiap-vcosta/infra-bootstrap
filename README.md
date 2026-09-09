@@ -7,9 +7,9 @@ Terraform da camada **persistente** da infraestrutura GCP do Tech Challenge FIAP
 - Habilitação das APIs usadas pelos stacks (`disable_on_destroy = false`)
 - Bucket GCS do backend de state (`vcosta-fiap-tech-challenge-tfstate`)
 - Workload Identity Federation: pool/provider `github` + service account `github-actions` e suas roles
-- VPC `techchallenge-vpc`, subnet regional com ranges secundários do cluster e range/peering do Private Service Access
-- Artifact Registry Docker `techchallenge` (imagem sobrevive entre demos)
-- Service account de runtime da API (`techchallenge-api`) com `roles/cloudsql.client` e Workload Identity para o cluster
+- VPC `tech-challenge-vpc`, subnet regional com ranges secundários do cluster e range/peering do Private Service Access
+- Artifact Registry Docker `tech-challenge` (imagem sobrevive entre demos)
+- Service account de runtime da API (`tech-challenge-api`) com `roles/cloudsql.client` e Workload Identity para o cluster
 - Outputs rígidos: `network_id`, `subnet_id`, `pods_range_name`, `services_range_name`
 - Região `us-central1`, projeto `vcosta-fiap-tech-challenge`
 
@@ -83,9 +83,9 @@ Alterar qualquer um destes valores quebra os stacks vizinhos:
 | Valor | Consumido por |
 |-------|---------------|
 | Outputs de rede (`network_id`, `subnet_id`, ranges secundários) | `infra-db` (IP privado do SQL) e `infra-k8s` (cluster), via `terraform_remote_state` |
-| `us-central1-docker.pkg.dev/vcosta-fiap-tech-challenge/techchallenge` | workflows de build/push e deploy da `api` |
-| `techchallenge-api@vcosta-fiap-tech-challenge.iam.gserviceaccount.com` | anotação de Workload Identity na service account Kubernetes |
-| Namespace `techchallenge` e service account Kubernetes `api` | binding de Workload Identity da service account de runtime |
+| `us-central1-docker.pkg.dev/vcosta-fiap-tech-challenge/tech-challenge` | workflows de build/push e deploy da `api` (org var `GCP_AR_REPOSITORY`) |
+| `tech-challenge-api@vcosta-fiap-tech-challenge.iam.gserviceaccount.com` | anotação de Workload Identity na service account Kubernetes |
+| Namespace `tech-challenge` e service account Kubernetes `api` | binding de Workload Identity da service account de runtime |
 
 Os dois valores do meio não são outputs porque quem os consome não roda Terraform: o workflow da `api` monta o caminho da imagem a partir de literais, e a anotação vive num manifesto YAML do `infra-k8s`.
 
