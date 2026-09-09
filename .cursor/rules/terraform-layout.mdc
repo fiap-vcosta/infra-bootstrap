@@ -1,0 +1,12 @@
+---
+description: Layout Terraform e estilo de docs/HCL (infra-bootstrap)
+alwaysApply: true
+---
+
+# Layout e estilo (`infra-bootstrap`)
+
+- Root module em **`terraform/`** (não espalhar `.tf` na raiz). Um arquivo por assunto (`network.tf`, `wif.tf`, `iam.tf`, …); `import` blocks concentrados em `imports.tf`.
+- CI Terraform usa `working-directory: terraform` e pin da **versão estável recente** do Terraform, alinhado aos repos `infra-db` / `infra-k8s`.
+- **Sem comentários narrativos** em `.tf` (o código e os nomes devem bastar). Comentário só em arquivo **placeholder vazio**.
+- **README:** lista do que está no escopo (sem tabela “inclui / não inclui”); não citar pastas locais fora do Git; não referenciar numeração de checklist interno.
+- `.gitignore` agrupado por seção (`# Terraform`, `# OS`, …), no espírito do repo `api`.
