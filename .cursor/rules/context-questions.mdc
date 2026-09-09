@@ -7,6 +7,6 @@ alwaysApply: true
 
 - Nunca assumir requisitos de rede, IAM, identidade federada ou custo quando estiverem ambíguos.
 - Antes de `apply`, mudança em WIF/roles, alteração de CIDR já aplicado ou remoção de recurso importado: perguntar.
-- Mudança que afete o contrato consumido por `infra-db` / `infra-k8s` / `api` (nomes de rede, ranges, namespace e KSA) exige confirmação explícita.
+- Mudança que afete o contrato consumido por `infra-db` / `infra-k8s` / `api` (nomes de rede, ranges secundários, SA de runtime, Artifact Registry) exige confirmação explícita.
 - Preferir 1–2 perguntas críticas por vez; propor opções concretas.
 - Canon: ADRs deste repo + decisões já tomadas na subida da nuvem.

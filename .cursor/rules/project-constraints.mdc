@@ -11,5 +11,5 @@ alwaysApply: true
 - Roles da SA de CI vivem neste repo, sempre least-privilege e **sem** `roles/editor`.
 - Não commitar kubeconfig, chaves SA, tfvars secretos.
 - CI barato: `fmt` + `validate`; root module em `terraform/`.
-- Contrato com outros repos (nomes de VPC/subnet/ranges, namespace e KSA do Workload Identity) muda com cuidado: quebra `infra-db`, `infra-k8s` e o deploy da `api`.
+- Contrato com outros repos (nomes de VPC/subnet/ranges secundários, e-mail da SA de runtime, caminho do Artifact Registry) muda com cuidado: quebra `infra-db`, `infra-k8s` e o deploy da `api`.
 - README sem referências a checklist interno (§N) nem a pastas só do workspace local.
