@@ -1,0 +1,15 @@
+---
+description: Restrições da camada persistente (infra-bootstrap)
+alwaysApply: true
+---
+
+# Restrições do projeto (`infra-bootstrap`)
+
+- Escopo: **Terraform** da camada persistente — APIs, bucket de state, WIF, SAs/roles, VPC/subnet/PSA, Artifact Registry. **Não** Cloud SQL (`infra-db`) nem cluster/manifests (`infra-k8s`).
+- **Apply e destroy só locais**, por humano com owner. **Nunca** criar workflow de `apply`/`destroy`: este stack concede IAM, e a SA de CI aplicando-o poderia se auto-promover.
+- Recursos daqui são gratuitos (ou centavos) e **sobrevivem** ao ciclo de demo; não introduzir aqui nada que custe por hora.
+- Roles da SA de CI vivem neste repo, sempre least-privilege e **sem** `roles/editor`.
+- Não commitar kubeconfig, chaves SA, tfvars secretos.
+- CI barato: `fmt` + `validate`; root module em `terraform/`.
+- Contrato com outros repos (nomes de VPC/subnet/ranges, namespace e KSA do Workload Identity) muda com cuidado: quebra `infra-db`, `infra-k8s` e o deploy da `api`.
+- README sem referências a checklist interno (§N) nem a pastas só do workspace local.

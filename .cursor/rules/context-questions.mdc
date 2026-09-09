@@ -1,0 +1,12 @@
+---
+description: Nunca assumir contexto; perguntar antes de decisões ambíguas
+alwaysApply: true
+---
+
+# Contexto e perguntas
+
+- Nunca assumir requisitos de rede, IAM, identidade federada ou custo quando estiverem ambíguos.
+- Antes de `apply`, mudança em WIF/roles, alteração de CIDR já aplicado ou remoção de recurso importado: perguntar.
+- Mudança que afete o contrato consumido por `infra-db` / `infra-k8s` / `api` (nomes de rede, ranges, namespace e KSA) exige confirmação explícita.
+- Preferir 1–2 perguntas críticas por vez; propor opções concretas.
+- Canon: ADRs deste repo + decisões já tomadas na subida da nuvem.
