@@ -9,8 +9,8 @@ Terraform da camada **persistente** da infraestrutura GCP do Tech Challenge FIAP
 - Workload Identity Federation: pool/provider `github` + service account `github-actions` e suas roles
 - VPC `tech-challenge-vpc`, subnet regional com ranges secundários do cluster e range/peering do Private Service Access
 - Artifact Registry Docker `tech-challenge` (imagem sobrevive entre demos)
-- Service account de runtime da API (`tech-challenge-api`) com `roles/cloudsql.client` e Workload Identity para o cluster
-- Outputs rígidos: `network_id`, `subnet_id`, `pods_range_name`, `services_range_name`
+- Service account de runtime da API (`tech-challenge-api`) com `roles/cloudsql.client`
+- Outputs rígidos: `network_id`, `subnet_id`, `pods_range_name`, `services_range_name`, `api_runtime_service_account_email`
 - Região `us-central1`, projeto `vcosta-fiap-tech-challenge`
 
 Root module: [`terraform/`](terraform/). Cloud SQL fica em [`infra-db`](https://github.com/fiap-vcosta/infra-db); cluster e manifests em [`infra-k8s`](https://github.com/fiap-vcosta/infra-k8s).
@@ -51,9 +51,13 @@ terraform plan -out=tfplan
 terraform apply tfplan
 ```
 
-No primeiro `plan`, confirmar que o resumo traz apenas `import` e `add`, com **0 to change, 0 to destroy**. Qualquer `destroy` ou `replace` indica divergência entre o código e o recurso real — parar e corrigir o código antes de aplicar, porque os recursos importados sustentam o OIDC do CI e o acesso ao state.
+Todo `plan` deste stack merece leitura linha a linha: os recursos aqui sustentam o OIDC do CI e o acesso ao state, então `destroy` ou `replace` inesperado significa parar e corrigir o código antes de aplicar.
 
-Os `import` blocks em [`terraform/imports.tf`](terraform/imports.tf) adotam o que foi criado à mão antes deste repo existir. Depois do primeiro apply bem-sucedido eles são inertes e podem ser removidos.
+## Quem pode assumir a service account de CI
+
+O binding de `roles/iam.workloadIdentityUser` é **por repositório** (`attribute.repository`), não por org: um repo novo na org não ganha acesso à GCP só por existir. Para habilitar um repo, incluir o nome em `ci_repositories` ([`terraform/variables.tf`](terraform/variables.tf)) e aplicar localmente.
+
+Repos habilitados: `api`, `auth`, `infra-db`, `infra-k8s`. Este repo não entra na lista — o CI dele não fala com a GCP.
 
 ## Roles da service account de CI
 
@@ -67,6 +71,7 @@ Least-privilege, sem `roles/editor`, definidas em [`terraform/iam.tf`](terraform
 - `roles/secretmanager.admin`
 - `roles/storage.objectAdmin` no bucket de state
 - `roles/iam.serviceAccountUser` na service account padrão de compute (exigência de criação do cluster)
+- Role customizada `serviceAccountIamPolicyWriter` (só `get`/`setIamPolicy`) na service account de runtime da API, para o `infra-k8s` criar o binding de Workload Identity
 
 `roles/servicenetworking.networksAdmin` sai da lista: o peering do PSA passou a ser aplicado localmente. Se o binding ainda existir de antes, remova-o depois do primeiro apply:
 
@@ -83,11 +88,16 @@ Alterar qualquer um destes valores quebra os stacks vizinhos:
 | Valor | Consumido por |
 |-------|---------------|
 | Outputs de rede (`network_id`, `subnet_id`, ranges secundários) | `infra-db` (IP privado do SQL) e `infra-k8s` (cluster), via `terraform_remote_state` |
+| Output `api_runtime_service_account_email` | `infra-k8s`: anotação da service account Kubernetes e binding de Workload Identity |
 | `us-central1-docker.pkg.dev/vcosta-fiap-tech-challenge/tech-challenge` | workflows de build/push e deploy da `api` (org var `GCP_AR_REPOSITORY`) |
-| `tech-challenge-api@vcosta-fiap-tech-challenge.iam.gserviceaccount.com` | anotação de Workload Identity na service account Kubernetes |
-| Namespace `tech-challenge` e service account Kubernetes `api` | binding de Workload Identity da service account de runtime |
 
-Os dois valores do meio não são outputs porque quem os consome não roda Terraform: o workflow da `api` monta o caminho da imagem a partir de literais, e a anotação vive num manifesto YAML do `infra-k8s`.
+O caminho da imagem não é output porque quem o consome não roda Terraform: o workflow da `api` o monta a partir de literais e org vars.
+
+## Workload Identity da API mora no `infra-k8s`
+
+O pool `vcosta-fiap-tech-challenge.svc.id.goog` só existe **enquanto houver um cluster com Workload Identity no projeto**. Conceder `roles/iam.workloadIdentityUser` à KSA da API daqui falharia com `Identity Pool does not exist` sempre que a demo estivesse derrubada.
+
+Por isso este stack só cria a service account de runtime e sua `roles/cloudsql.client`; o binding KSA → service account é criado pelo `infra-k8s`, depois do cluster, e morre junto com ele.
 
 ## Agentes
 

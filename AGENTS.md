@@ -22,6 +22,8 @@ Terraform da camada **persistente** do projeto na GCP: habilitação de APIs, bu
 
 - Este stack concede IAM: se o CI o aplicasse, a SA de CI poderia se auto-promover
 - Nada aqui morre no ciclo de demo; os outros stacks referenciam estes recursos
+- Workload Identity do CI é por repositório (`ci_repositories`), não por org
+- Binding KSA → SA de runtime não cabe aqui: o pool `svc.id.goog` só existe com cluster vivo (mora no `infra-k8s`)
 - CI só `fmt`/`validate`; sem workflow de apply nem de destroy
 - Sem secrets no Git
 
