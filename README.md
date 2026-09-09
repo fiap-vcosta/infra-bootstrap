@@ -10,6 +10,7 @@ Terraform da camada **persistente** da infraestrutura GCP do Tech Challenge FIAP
 - VPC `techchallenge-vpc`, subnet regional com ranges secundários do cluster e range/peering do Private Service Access
 - Artifact Registry Docker `techchallenge` (imagem sobrevive entre demos)
 - Service account de runtime da API (`techchallenge-api`) com `roles/cloudsql.client` e Workload Identity para o cluster
+- Outputs rígidos: `network_id`, `subnet_id`, `pods_range_name`, `services_range_name`
 - Região `us-central1`, projeto `vcosta-fiap-tech-challenge`
 
 Root module: [`terraform/`](terraform/). Cloud SQL fica em [`infra-db`](https://github.com/fiap-vcosta/infra-db); cluster e manifests em [`infra-k8s`](https://github.com/fiap-vcosta/infra-k8s).
@@ -81,9 +82,12 @@ Alterar qualquer um destes valores quebra os stacks vizinhos:
 
 | Valor | Consumido por |
 |-------|---------------|
-| VPC/subnet e nomes dos ranges secundários | `infra-db` (IP privado do SQL), `infra-k8s` (cluster) |
-| URL do Artifact Registry | workflows de build/push e deploy da `api` |
+| Outputs de rede (`network_id`, `subnet_id`, ranges secundários) | `infra-db` (IP privado do SQL) e `infra-k8s` (cluster), via `terraform_remote_state` |
+| `us-central1-docker.pkg.dev/vcosta-fiap-tech-challenge/techchallenge` | workflows de build/push e deploy da `api` |
+| `techchallenge-api@vcosta-fiap-tech-challenge.iam.gserviceaccount.com` | anotação de Workload Identity na service account Kubernetes |
 | Namespace `techchallenge` e service account Kubernetes `api` | binding de Workload Identity da service account de runtime |
+
+Os dois valores do meio não são outputs porque quem os consome não roda Terraform: o workflow da `api` monta o caminho da imagem a partir de literais, e a anotação vive num manifesto YAML do `infra-k8s`.
 
 ## Agentes
 
