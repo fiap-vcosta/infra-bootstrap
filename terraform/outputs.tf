@@ -17,3 +17,8 @@ output "services_range_name" {
   description = "Range secundário de services do cluster."
   value       = var.services_range_name
 }
+
+output "api_runtime_service_account_email" {
+  description = "Service account de runtime da API, anotada na KSA pelo infra-k8s."
+  value       = google_service_account.api_runtime.email
+}

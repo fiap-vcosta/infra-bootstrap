@@ -28,7 +28,9 @@ resource "google_service_account" "ci" {
 }
 
 resource "google_service_account_iam_member" "ci_workload_identity" {
+  for_each = toset(var.ci_repositories)
+
   service_account_id = google_service_account.ci.name
   role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository_owner/${var.github_org}"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_org}/${each.value}"
 }

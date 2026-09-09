@@ -52,6 +52,17 @@ variable "ci_service_account_id" {
   default     = "github-actions"
 }
 
+variable "ci_repositories" {
+  type        = list(string)
+  description = "Repositórios da org cujos workflows podem assumir a service account de CI."
+  default = [
+    "api",
+    "auth",
+    "infra-db",
+    "infra-k8s",
+  ]
+}
+
 variable "ci_project_roles" {
   type        = list(string)
   description = "Roles de projeto da service account de CI (least-privilege, sem editor)."
@@ -131,14 +142,3 @@ variable "runtime_service_account_id" {
   default     = "tech-challenge-api"
 }
 
-variable "k8s_namespace" {
-  type        = string
-  description = "Namespace Kubernetes da API (contrato com o infra-k8s)."
-  default     = "tech-challenge"
-}
-
-variable "k8s_service_account" {
-  type        = string
-  description = "Service account Kubernetes da API (contrato com o infra-k8s)."
-  default     = "api"
-}
