@@ -99,6 +99,10 @@ O pool `vcosta-fiap-tech-challenge.svc.id.goog` só existe **enquanto houver um 
 
 Por isso este stack só cria a service account de runtime e sua `roles/cloudsql.client`; o binding KSA → service account é criado pelo `infra-k8s`, depois do cluster, e morre junto com ele.
 
+## Decisões (ADRs)
+
+Ver [`docs/README.md`](docs/README.md). Em especial: [GCP, região e custo](docs/adrs/001-gcp-regiao-custo.md).
+
 ## Agentes
 
 Ver [AGENTS.md](AGENTS.md).
