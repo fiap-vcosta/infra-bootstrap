@@ -101,7 +101,7 @@ Por isso este stack só cria a service account de runtime e sua `roles/cloudsql.
 
 ## Decisões (ADRs)
 
-Ver [`docs/README.md`](docs/README.md). Em especial: [GCP, região e custo](docs/adrs/001-gcp-regiao-custo.md).
+Ver [`docs/README.md`](docs/README.md). Em especial: [GCP, região e custo](docs/adrs/001-gcp-regiao-custo.md) e [camada persistente](docs/adrs/002-camada-persistente.md).
 
 ## Agentes
 
