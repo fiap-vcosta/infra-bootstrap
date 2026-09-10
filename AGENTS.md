@@ -4,7 +4,7 @@ Terraform da camada **persistente** do projeto na GCP: habilitação de APIs, bu
 
 ## Antes de mudar código
 
-1. Ler ADRs deste repo (quando existirem) e as decisões de custo/demo já tomadas
+1. Ler ADRs em [`docs/adrs/`](docs/adrs/) e as decisões de custo/demo já tomadas
 2. Espelhar módulos/pastas vizinhas (`infra-db`, `infra-k8s`); não inventar layout paralelo
 3. Não rodar `apply`/`destroy` sem confirmação explícita do usuário
 4. **Git:** nunca commit/push direto em `main` — branch → PR → merge (ver [`.cursor/rules/git-workflow.mdc`](.cursor/rules/git-workflow.mdc))
