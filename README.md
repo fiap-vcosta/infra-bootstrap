@@ -61,7 +61,7 @@ Repos habilitados: `api`, `auth`, `infra-db`, `infra-k8s`. Este repo não entra 
 
 ## Roles da service account de CI
 
-Least-privilege, sem `roles/editor`, definidas em [`terraform/iam.tf`](terraform/iam.tf):
+Least-privilege, sem `roles/editor`, definidas em [`terraform/iam.tf`](terraform/iam.tf) / [`terraform/variables.tf`](terraform/variables.tf):
 
 - `roles/viewer`
 - `roles/cloudsql.admin`
@@ -69,9 +69,14 @@ Least-privilege, sem `roles/editor`, definidas em [`terraform/iam.tf`](terraform
 - `roles/container.admin`
 - `roles/artifactregistry.writer`
 - `roles/secretmanager.admin`
+- `roles/cloudfunctions.developer` — deploy da Function `auth` (2nd gen)
+- `roles/run.admin` — serviço Cloud Run por baixo da Function gen2
+- `roles/apigateway.admin` / `roles/servicemanagement.admin` — API Gateway no `infra-k8s`
 - `roles/storage.objectAdmin` no bucket de state
-- `roles/iam.serviceAccountUser` na service account padrão de compute (exigência de criação do cluster)
+- `roles/iam.serviceAccountUser` na service account padrão de compute (cluster e runtime padrão da Function)
 - Role customizada `serviceAccountIamPolicyWriter` (só `get`/`setIamPolicy`) na service account de runtime da API, para o `infra-k8s` criar o binding de Workload Identity
+
+APIs extras habilitadas para Function `auth` e API Gateway: `cloudfunctions`, `run`, `cloudbuild`, `apigateway`, `servicecontrol`, `servicemanagement`.
 
 `roles/servicenetworking.networksAdmin` sai da lista: o peering do PSA passou a ser aplicado localmente. Se o binding ainda existir de antes, remova-o depois do primeiro apply:
 
