@@ -1,6 +1,6 @@
 # Tech Challenge — Guia para agentes (`infra-bootstrap`)
 
-Terraform da camada **persistente** do projeto na GCP: habilitação de APIs, bucket de state, Workload Identity Federation, service accounts, rede (VPC/subnet/PSA) e Artifact Registry. Org [fiap-vcosta](https://github.com/fiap-vcosta). Cloud SQL fica em `infra-db`; cluster e manifests em `infra-k8s`; Function em `auth`.
+Terraform da camada **persistente** do projeto na GCP: habilitação de APIs, bucket de state, Workload Identity Federation, service accounts, rede (VPC/subnet/PSA), Artifact Registry e Cloud DNS (zona do domínio). Org [fiap-vcosta](https://github.com/fiap-vcosta). Cloud SQL fica em `infra-db`; cluster e manifests em `infra-k8s`; Function em `auth`.
 
 ## Antes de mudar código
 
@@ -13,10 +13,10 @@ Terraform da camada **persistente** do projeto na GCP: habilitação de APIs, bu
 
 | Peça | Papel |
 |------|--------|
-| Terraform | APIs, bucket de state, WIF, SAs e roles, VPC/subnet/PSA, Artifact Registry |
+| Terraform | APIs, bucket de state, WIF, SAs e roles, VPC/subnet/PSA, Artifact Registry, Cloud DNS zone |
 | Apply | **Local, por humano com owner** — nunca por CI |
 | Ciclo de vida | Recursos gratuitos e estáveis; **não** entram no `tf-destroy` da demo |
-| Fora de escopo | Cloud SQL, cluster GKE, manifests, código da API e da Function |
+| Fora de escopo | Cloud SQL, cluster GKE, manifests, records DNS da janela, código da API e da Function |
 
 ## Regras canônicas (resumo)
 

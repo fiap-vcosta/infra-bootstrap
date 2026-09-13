@@ -6,7 +6,7 @@
 
 ## 1. Contexto e Problema
 
-A demo sobe e derruba Cloud SQL e GKE a cada janela (`tf-destroy` sem carve-outs). Alguns recursos, porém, são pré-requisito de todos os stacks, custam ~zero parados e **não podem morrer** no destroy da demo: bucket de state Terraform, rede (VPC/subnet/PSA), Workload Identity Federation, service accounts/roles e Artifact Registry.
+A demo sobe e derruba Cloud SQL e GKE a cada janela (`tf-destroy` sem carve-outs). Alguns recursos, porém, são pré-requisito de todos os stacks, custam ~zero parados e **não podem morrer** no destroy da demo: bucket de state Terraform, rede (VPC/subnet/PSA), Workload Identity Federation, service accounts/roles, Artifact Registry e a managed zone pública do Cloud DNS (domínio da demo).
 
 No início, parte disso vivia misturada aos stacks descartáveis. Isso gerava tensão: ou o destroy apagava o que a próxima demo precisava, ou surgiam carve-outs (`prevent_destroy`, `-target`) que mentiam o state.
 
@@ -14,17 +14,17 @@ O problema a ser resolvido é: **Onde moram os recursos estáveis da GCP, quem o
 
 ## 2. Decisão
 
-- **Repo dedicado** [`infra-bootstrap`](https://github.com/fiap-vcosta/infra-bootstrap): camada **persistente** — APIs habilitadas, bucket de state, WIF (pool/provider), SA `github-actions` e roles, VPC/subnet/PSA, Artifact Registry, SA de runtime da API (`cloudsql.client`).
+- **Repo dedicado** [`infra-bootstrap`](https://github.com/fiap-vcosta/infra-bootstrap): camada **persistente** — APIs habilitadas, bucket de state, WIF (pool/provider), SA `github-actions` e roles, VPC/subnet/PSA, Artifact Registry, SA de runtime da API (`cloudsql.client`), Cloud DNS managed zone do domínio da demo.
 - **Apply/destroy:** **local**, com ADC de humano com **owner**. **Sem** workflow de `tf-apply` / `tf-destroy` neste repo. CI só `fmt` / `validate`.
-- **Consumo:** `infra-db` e `infra-k8s` leem rede (e outputs relacionados) via `terraform_remote_state`; não recriam a VPC aqui.
+- **Consumo:** `infra-db` e `infra-k8s` leem rede (e outputs relacionados) via `terraform_remote_state`; não recriam a VPC aqui. Records DNS da janela (`api`/`auth`) ficam no `infra-k8s`.
 - **WIF do CI:** binding `roles/iam.workloadIdentityUser` **por repositório** (`ci_repositories`), não por org inteira.
-- **Fora deste repo:** Cloud SQL, cluster GKE, manifests da API, Function `auth`. Binding KSA → SA de runtime mora no `infra-k8s` (o pool `svc.id.goog` só existe com cluster vivo).
+- **Fora deste repo:** Cloud SQL, cluster GKE, manifests da API, serviço `auth`, records DNS transitórios. Binding KSA → SA de runtime mora no `infra-k8s` (o pool `svc.id.goog` só existe com cluster vivo).
 
 ## 3. Justificativa
 
 * **Ciclo de demo limpo:** `tf-destroy` em `infra-db` / `infra-k8s` apaga o state inteiro daqueles repos sem apagar state GCS, rede nem registry.
 * **IAM não pode ser aplicado pela SA de CI:** este stack **concede** roles à `github-actions`. Se o CI o aplicasse, a SA precisaria de permissão de IAM sobre si mesma e poderia se auto-promover — risco inaceitável.
-* **Custo idle ~zero:** VPC parada, bucket em bytes, AR abaixo do free tier típico da demo; faz sentido permanecer entre janelas.
+* **Custo idle ~zero:** VPC parada, bucket em bytes, AR abaixo do free tier típico da demo; Cloud DNS zone ~centavos/mês — nameservers no registrador mudam **uma vez**, sem editar Hostinger a cada demo.
 * **WIF por repo:** um repositório novo na org não ganha acesso à GCP só por existir; inclusão exige mudança explícita em `ci_repositories` + apply local.
 
 ## 4. Alternativas Consideradas

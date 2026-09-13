@@ -21,6 +21,7 @@ variable "project_services" {
     "cloudresourcemanager.googleapis.com",
     "compute.googleapis.com",
     "container.googleapis.com",
+    "dns.googleapis.com",
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
     "run.googleapis.com",
@@ -79,6 +80,7 @@ variable "ci_project_roles" {
     "roles/cloudsql.admin",
     "roles/compute.networkAdmin",
     "roles/container.admin",
+    "roles/dns.admin",
     "roles/run.admin",
     "roles/secretmanager.admin",
     "roles/servicemanagement.admin",
@@ -150,5 +152,17 @@ variable "runtime_service_account_id" {
   type        = string
   description = "Account ID da service account de runtime da API."
   default     = "tech-challenge-api"
+}
+
+variable "dns_managed_zone_name" {
+  type        = string
+  description = "Nome da managed zone pública no Cloud DNS."
+  default     = "tech-challenge"
+}
+
+variable "dns_name" {
+  type        = string
+  description = "DNS name da zona (FQDN com ponto final)."
+  default     = "vcosta-fiap.online."
 }
 
