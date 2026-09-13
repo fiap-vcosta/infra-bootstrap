@@ -10,7 +10,8 @@ Terraform da camada **persistente** da infraestrutura GCP do Tech Challenge FIAP
 - VPC `tech-challenge-vpc`, subnet regional com ranges secundários do cluster e range/peering do Private Service Access
 - Artifact Registry Docker `tech-challenge` (imagem sobrevive entre demos)
 - Service account de runtime da API (`tech-challenge-api`) com `roles/cloudsql.client`
-- Outputs rígidos: `network_id`, `subnet_id`, `pods_range_name`, `services_range_name`, `api_runtime_service_account_email`
+- Cloud DNS managed zone pública `tech-challenge` para `vcosta-fiap.online` (records da demo ficam no `infra-k8s`)
+- Outputs rígidos: `network_id`, `subnet_id`, `pods_range_name`, `services_range_name`, `api_runtime_service_account_email`, `dns_managed_zone_name`, `dns_name`, `dns_name_servers`
 - Região `us-central1`, projeto `vcosta-fiap-tech-challenge`
 
 Root module: [`terraform/`](terraform/). Cloud SQL fica em [`infra-db`](https://github.com/fiap-vcosta/infra-db); cluster e manifests em [`infra-k8s`](https://github.com/fiap-vcosta/infra-k8s).
@@ -72,11 +73,12 @@ Least-privilege, sem `roles/editor`, definidas em [`terraform/iam.tf`](terraform
 - `roles/cloudfunctions.developer` — deploy da Function `auth` (2nd gen)
 - `roles/run.admin` — serviço Cloud Run por baixo da Function gen2
 - `roles/apigateway.admin` / `roles/servicemanagement.admin` — API Gateway no `infra-k8s`
+- `roles/dns.admin` — records DNS da demo no `infra-k8s`
 - `roles/storage.objectAdmin` no bucket de state
 - `roles/iam.serviceAccountUser` na service account padrão de compute (cluster e runtime padrão da Function)
 - Role customizada `serviceAccountIamPolicyWriter` (só `get`/`setIamPolicy`) na service account de runtime da API, para o `infra-k8s` criar o binding de Workload Identity
 
-APIs extras habilitadas para Function `auth` e API Gateway: `cloudfunctions`, `run`, `cloudbuild`, `apigateway`, `servicecontrol`, `servicemanagement`.
+APIs extras habilitadas para Function `auth`, API Gateway e DNS: `cloudfunctions`, `run`, `cloudbuild`, `apigateway`, `servicecontrol`, `servicemanagement`, `dns`.
 
 `roles/servicenetworking.networksAdmin` sai da lista: o peering do PSA passou a ser aplicado localmente. Se o binding ainda existir de antes, remova-o depois do primeiro apply:
 
@@ -94,7 +96,19 @@ Alterar qualquer um destes valores quebra os stacks vizinhos:
 |-------|---------------|
 | Outputs de rede (`network_id`, `subnet_id`, ranges secundários) | `infra-db` (IP privado do SQL) e `infra-k8s` (cluster), via `terraform_remote_state` |
 | Output `api_runtime_service_account_email` | `infra-k8s`: anotação da service account Kubernetes e binding de Workload Identity |
+| Outputs DNS (`dns_managed_zone_name`, `dns_name`, `dns_name_servers`) | `infra-k8s` (records `api`/`auth`); nameservers vão uma vez no registrador (Hostinger) |
 | `us-central1-docker.pkg.dev/vcosta-fiap-tech-challenge/tech-challenge` | workflows de build/push e deploy da `api` (org var `GCP_AR_REPOSITORY`) |
+
+## Domínio e nameservers
+
+A zona Cloud DNS é **persistente** (~US$ 0,20/mês). Depois do `apply` local:
+
+```bash
+cd terraform
+terraform output -json dns_name_servers
+```
+
+No registrador (Hostinger), troque os nameservers do domínio `vcosta-fiap.online` pelos quatro NS Google dessa saída. Records `api` / `auth` **não** moram aqui — o `infra-k8s` os cria e apaga a cada ciclo de demo.
 
 O caminho da imagem não é output porque quem o consome não roda Terraform: o workflow da `api` o monta a partir de literais e org vars.
 

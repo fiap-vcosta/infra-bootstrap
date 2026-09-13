@@ -22,3 +22,18 @@ output "api_runtime_service_account_email" {
   description = "Service account de runtime da API, anotada na KSA pelo infra-k8s."
   value       = google_service_account.api_runtime.email
 }
+
+output "dns_managed_zone_name" {
+  description = "Nome da managed zone pública consumida pelo infra-k8s."
+  value       = google_dns_managed_zone.public.name
+}
+
+output "dns_name" {
+  description = "DNS name da zona (FQDN com ponto final)."
+  value       = google_dns_managed_zone.public.dns_name
+}
+
+output "dns_name_servers" {
+  description = "Nameservers Google a configurar no registrador (Hostinger)."
+  value       = google_dns_managed_zone.public.name_servers
+}
