@@ -14,13 +14,19 @@ variable "project_services" {
   type        = list(string)
   description = "APIs mantidas habilitadas para os stacks do projeto."
   default = [
+    "apigateway.googleapis.com",
     "artifactregistry.googleapis.com",
+    "cloudbuild.googleapis.com",
+    "cloudfunctions.googleapis.com",
     "cloudresourcemanager.googleapis.com",
     "compute.googleapis.com",
     "container.googleapis.com",
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
+    "run.googleapis.com",
     "secretmanager.googleapis.com",
+    "servicecontrol.googleapis.com",
+    "servicemanagement.googleapis.com",
     "servicenetworking.googleapis.com",
     "sqladmin.googleapis.com",
     "storage.googleapis.com",
@@ -67,11 +73,15 @@ variable "ci_project_roles" {
   type        = list(string)
   description = "Roles de projeto da service account de CI (least-privilege, sem editor)."
   default = [
+    "roles/apigateway.admin",
     "roles/artifactregistry.writer",
+    "roles/cloudfunctions.developer",
     "roles/cloudsql.admin",
     "roles/compute.networkAdmin",
     "roles/container.admin",
+    "roles/run.admin",
     "roles/secretmanager.admin",
+    "roles/servicemanagement.admin",
     "roles/viewer",
   ]
 }
