@@ -32,7 +32,6 @@ resource "google_project_iam_custom_role" "gateway_entry_lb" {
     "compute.sslCertificates.delete",
     "compute.sslCertificates.get",
     "compute.sslCertificates.list",
-    "compute.sslCertificates.use",
   ]
 }
 
