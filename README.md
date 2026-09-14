@@ -77,6 +77,7 @@ Least-privilege, sem `roles/editor`, definidas em [`terraform/iam.tf`](terraform
 - `roles/storage.objectAdmin` no bucket de state
 - `roles/iam.serviceAccountUser` na service account padrão de compute (cluster e runtime padrão da Function)
 - Role customizada `serviceAccountIamPolicyWriter` (só `get`/`setIamPolicy`) na service account de runtime da API, para o `infra-k8s` criar o binding de Workload Identity
+- Role customizada `gatewayEntryLb` (NEG serverless + `sslCertificates`) para o HTTPS LB da entrada no apex → API Gateway (`infra-k8s`)
 
 APIs extras habilitadas para Function `auth`, API Gateway e DNS: `cloudfunctions`, `run`, `cloudbuild`, `apigateway`, `servicecontrol`, `servicemanagement`, `dns`.
 
