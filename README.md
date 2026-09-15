@@ -123,6 +123,16 @@ Por isso este stack só cria a service account de runtime e sua `roles/cloudsql.
 
 Ver [`docs/README.md`](docs/README.md). Em especial: [GCP, região e custo](docs/adrs/001-gcp-regiao-custo.md) e [camada persistente](docs/adrs/002-camada-persistente.md).
 
+## Repos da org
+
+| Repo | Papel | Diagrama / doc-chave |
+|------|--------|----------------------|
+| [`infra-bootstrap`](https://github.com/fiap-vcosta/infra-bootstrap) | Rede, WIF, AR, zona DNS | Persistente (este repo) |
+| [`infra-db`](https://github.com/fiap-vcosta/infra-db) | Cloud SQL | ADRs de banco |
+| [`infra-k8s`](https://github.com/fiap-vcosta/infra-k8s) | GKE + Gateway + Cloud Run auth | [Componentes](https://github.com/fiap-vcosta/infra-k8s#componentes-nuvem) |
+| [`api`](https://github.com/fiap-vcosta/api) | App + manifests + Requestly | [ER](https://github.com/fiap-vcosta/api/blob/main/docs/08_modelo-de-dados.md) |
+| [`auth`](https://github.com/fiap-vcosta/auth) | Imagem documento → JWT | Sequência no README |
+
 ## Agentes
 
 Ver [AGENTS.md](AGENTS.md).
