@@ -4,6 +4,16 @@ resource "google_artifact_registry_repository" "api" {
   format        = "DOCKER"
 
   cleanup_policies {
+    id     = "delete-old"
+    action = "DELETE"
+
+    condition {
+      tag_state  = "ANY"
+      older_than = var.registry_delete_older_than
+    }
+  }
+
+  cleanup_policies {
     id     = "keep-recent"
     action = "KEEP"
 

@@ -12,4 +12,4 @@ alwaysApply: true
 - Não commitar kubeconfig, chaves SA, tfvars secretos.
 - CI barato: `fmt` + `validate`; root module em `terraform/`.
 - Contrato com outros repos (nomes de VPC/subnet/ranges secundários, e-mail da SA de runtime, caminho do Artifact Registry) muda com cuidado: quebra `infra-db`, `infra-k8s` e o deploy da `api`.
-- README sem referências a checklist interno (§N) nem a pastas só do workspace local.
+- README autocontido: sem referências a pastas fora do Git nem a numeração de documentos pessoais.

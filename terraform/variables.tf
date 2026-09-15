@@ -144,8 +144,14 @@ variable "registry_repository_id" {
 
 variable "registry_keep_versions" {
   type        = number
-  description = "Quantidade de tags recentes preservadas pela cleanup policy."
-  default     = 5
+  description = "Quantidade de versões recentes preservadas pela cleanup policy KEEP."
+  default     = 2
+}
+
+variable "registry_delete_older_than" {
+  type        = string
+  description = "Idade mínima (duração GCP, ex. 86400s) para a cleanup policy DELETE."
+  default     = "86400s"
 }
 
 variable "runtime_service_account_id" {
