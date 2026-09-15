@@ -8,7 +8,7 @@ Terraform da camada **persistente** da infraestrutura GCP do Tech Challenge FIAP
 - Bucket GCS do backend de state (`vcosta-fiap-tech-challenge-tfstate`)
 - Workload Identity Federation: pool/provider `github` + service account `github-actions` e suas roles
 - VPC `tech-challenge-vpc`, subnet regional com ranges secundários do cluster e range/peering do Private Service Access
-- Artifact Registry Docker `tech-challenge` (imagem sobrevive entre demos)
+- Artifact Registry Docker `tech-challenge` (imagem sobrevive entre demos; cleanup: DELETE versões com mais de 1 dia + KEEP as 2 mais recentes por pacote — `KEEP` sozinho não apaga nada)
 - Service account de runtime da API (`tech-challenge-api`) com `roles/cloudsql.client`
 - Cloud DNS managed zone pública `tech-challenge` para `vcosta-fiap.online` (records da demo ficam no `infra-k8s`)
 - Outputs rígidos: `network_id`, `subnet_id`, `pods_range_name`, `services_range_name`, `api_runtime_service_account_email`, `dns_managed_zone_name`, `dns_name`, `dns_name_servers`
@@ -122,6 +122,16 @@ Por isso este stack só cria a service account de runtime e sua `roles/cloudsql.
 ## Decisões (ADRs)
 
 Ver [`docs/README.md`](docs/README.md). Em especial: [GCP, região e custo](docs/adrs/001-gcp-regiao-custo.md) e [camada persistente](docs/adrs/002-camada-persistente.md).
+
+## Repos da org
+
+| Repo | Papel | Diagrama / doc-chave |
+|------|--------|----------------------|
+| [`infra-bootstrap`](https://github.com/fiap-vcosta/infra-bootstrap) | Rede, WIF, AR, zona DNS | Persistente (este repo) |
+| [`infra-db`](https://github.com/fiap-vcosta/infra-db) | Cloud SQL | ADRs de banco |
+| [`infra-k8s`](https://github.com/fiap-vcosta/infra-k8s) | GKE + Gateway + Cloud Run auth | [Componentes](https://github.com/fiap-vcosta/infra-k8s#componentes-nuvem) |
+| [`api`](https://github.com/fiap-vcosta/api) | App + manifests + Requestly | [ER](https://github.com/fiap-vcosta/api/blob/main/docs/08_modelo-de-dados.md) |
+| [`auth`](https://github.com/fiap-vcosta/auth) | Imagem documento → JWT | Sequência no README |
 
 ## Agentes
 
