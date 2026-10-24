@@ -63,7 +63,7 @@ variable "ci_repositories" {
   type        = list(string)
   description = "Repositórios da org cujos workflows podem assumir a service account de CI."
   default = [
-    "api",
+    "ordem-servico-service",
     "auth",
     "infra-db",
     "infra-k8s",
