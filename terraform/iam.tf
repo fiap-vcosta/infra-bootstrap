@@ -41,6 +41,65 @@ resource "google_project_iam_member" "ci_gateway_entry_lb" {
   member  = google_service_account.ci.member
 }
 
+resource "google_project_iam_custom_role" "ci_pubsub_admin" {
+  role_id     = "ciPubSubAdmin"
+  title       = "CI Pub/Sub Admin"
+  description = "Cria, altera e apaga tópicos e subscriptions e grava o IAM desses recursos."
+  permissions = [
+    "pubsub.subscriptions.create",
+    "pubsub.subscriptions.delete",
+    "pubsub.subscriptions.get",
+    "pubsub.subscriptions.getIamPolicy",
+    "pubsub.subscriptions.list",
+    "pubsub.subscriptions.setIamPolicy",
+    "pubsub.subscriptions.update",
+    "pubsub.topics.attachSubscription",
+    "pubsub.topics.create",
+    "pubsub.topics.delete",
+    "pubsub.topics.get",
+    "pubsub.topics.getIamPolicy",
+    "pubsub.topics.list",
+    "pubsub.topics.setIamPolicy",
+    "pubsub.topics.update",
+  ]
+}
+
+resource "google_project_iam_member" "ci_pubsub_admin" {
+  project = var.project_id
+  role    = google_project_iam_custom_role.ci_pubsub_admin.id
+  member  = google_service_account.ci.member
+}
+
+resource "google_project_iam_custom_role" "ci_firestore_database_admin" {
+  role_id     = "ciFirestoreDatabaseAdmin"
+  title       = "CI Firestore Database Admin"
+  description = "Cria, altera e apaga databases Firestore e índices, e acompanha as operações. Sem acesso a documento."
+  permissions = [
+    "datastore.databases.create",
+    "datastore.databases.delete",
+    "datastore.databases.get",
+    "datastore.databases.getMetadata",
+    "datastore.databases.list",
+    "datastore.databases.update",
+    "datastore.indexes.create",
+    "datastore.indexes.delete",
+    "datastore.indexes.get",
+    "datastore.indexes.list",
+    "datastore.indexes.update",
+    "datastore.locations.get",
+    "datastore.locations.list",
+    "datastore.operations.cancel",
+    "datastore.operations.get",
+    "datastore.operations.list",
+  ]
+}
+
+resource "google_project_iam_member" "ci_firestore_database_admin" {
+  project = var.project_id
+  role    = google_project_iam_custom_role.ci_firestore_database_admin.id
+  member  = google_service_account.ci.member
+}
+
 resource "google_service_account_iam_member" "ci_node_service_account_user" {
   service_account_id = data.google_compute_default_service_account.default.name
   role               = "roles/iam.serviceAccountUser"

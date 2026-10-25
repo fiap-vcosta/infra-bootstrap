@@ -58,7 +58,7 @@ Todo `plan` deste stack merece leitura linha a linha: os recursos aqui sustentam
 
 O binding de `roles/iam.workloadIdentityUser` é **por repositório** (`attribute.repository`), não por org: um repo novo na org não ganha acesso à GCP só por existir. Para habilitar um repo, incluir o nome em `ci_repositories` ([`terraform/variables.tf`](terraform/variables.tf)) e aplicar localmente.
 
-Repos habilitados: `api`, `auth`, `infra-db`, `infra-k8s`. Este repo não entra na lista — o CI dele não fala com a GCP.
+Repos habilitados: `administrativo-service`, `autenticacao-service`, `e2e`, `estoque-service`, `infra-db`, `infra-events`, `infra-k8s`, `orcamento-service`, `ordem-servico-service`. Este repo não entra na lista — o CI dele não fala com a GCP. `building-blocks` também não: o pacote não fala com a GCP.
 
 ## Roles da service account de CI
 
@@ -78,8 +78,10 @@ Least-privilege, sem `roles/editor`, definidas em [`terraform/iam.tf`](terraform
 - `roles/iam.serviceAccountUser` na service account padrão de compute (cluster e runtime padrão da Function)
 - Role customizada `serviceAccountIamPolicyWriter` (só `get`/`setIamPolicy`) na service account de runtime da API, para o `infra-k8s` criar o binding de Workload Identity
 - Role customizada `gatewayEntryLb` (NEG serverless + `sslCertificates`) para o HTTPS LB da entrada no apex → API Gateway (`infra-k8s`)
+- Role customizada `ciPubSubAdmin`: tópicos e subscriptions (`get`/`list`/`create`/`delete`/`update`, `getIamPolicy`/`setIamPolicy`, `topics.attachSubscription`). Sem `publish` e sem `consume`
+- Role customizada `ciFirestoreDatabaseAdmin`: databases (`create`/`delete`/`get`/`getMetadata`/`list`/`update`), índices, locations e operations. Sem `datastore.entities.*`
 
-APIs extras habilitadas para Function `auth`, API Gateway e DNS: `cloudfunctions`, `run`, `cloudbuild`, `apigateway`, `servicecontrol`, `servicemanagement`, `dns`.
+APIs extras habilitadas para Function `auth`, API Gateway e DNS: `cloudfunctions`, `run`, `cloudbuild`, `apigateway`, `servicecontrol`, `servicemanagement`, `dns`. Mensageria e documento: `pubsub`, `firestore`.
 
 `roles/servicenetworking.networksAdmin` sai da lista: o peering do PSA passou a ser aplicado localmente. Se o binding ainda existir de antes, remova-o depois do primeiro apply:
 

@@ -22,8 +22,10 @@ variable "project_services" {
     "compute.googleapis.com",
     "container.googleapis.com",
     "dns.googleapis.com",
+    "firestore.googleapis.com",
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
+    "pubsub.googleapis.com",
     "run.googleapis.com",
     "secretmanager.googleapis.com",
     "servicecontrol.googleapis.com",
@@ -63,10 +65,15 @@ variable "ci_repositories" {
   type        = list(string)
   description = "Repositórios da org cujos workflows podem assumir a service account de CI."
   default = [
-    "ordem-servico-service",
-    "auth",
+    "administrativo-service",
+    "autenticacao-service",
+    "e2e",
+    "estoque-service",
     "infra-db",
+    "infra-events",
     "infra-k8s",
+    "orcamento-service",
+    "ordem-servico-service",
   ]
 }
 
