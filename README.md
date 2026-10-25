@@ -9,9 +9,9 @@ Terraform da camada **persistente** da infraestrutura GCP do Tech Challenge FIAP
 - Workload Identity Federation: pool/provider `github` + service account `github-actions` e suas roles
 - VPC `tech-challenge-vpc`, subnet regional com ranges secundários do cluster e range/peering do Private Service Access
 - Artifact Registry Docker `tech-challenge` (imagem sobrevive entre demos; cleanup: DELETE versões com mais de 1 dia + KEEP as 2 mais recentes por pacote — `KEEP` sozinho não apaga nada)
-- Service account de runtime da API (`tech-challenge-api`) com `roles/cloudsql.client`
+- Cinco service accounts de runtime, account id igual ao repositório. `roles/cloudsql.client` em `ordem-servico-service`, `estoque-service` e `administrativo-service`. `roles/datastore.user` no projeto em `orcamento-service` e `autenticacao-service` (o database nomeado nasce no Terraform de cada serviço, então o grant ainda não é por database)
 - Cloud DNS managed zone pública `tech-challenge` para `vcosta-fiap.online` (records da demo ficam no `infra-k8s`)
-- Outputs rígidos: `network_id`, `subnet_id`, `pods_range_name`, `services_range_name`, `api_runtime_service_account_email`, `dns_managed_zone_name`, `dns_name`, `dns_name_servers`
+- Outputs rígidos: `network_id`, `subnet_id`, `pods_range_name`, `services_range_name`, `runtime_service_account_emails`, `dns_managed_zone_name`, `dns_name`, `dns_name_servers`
 - Região `us-central1`, projeto `vcosta-fiap-tech-challenge`
 
 Root module: [`terraform/`](terraform/). Cloud SQL fica em [`infra-db`](https://github.com/fiap-vcosta/infra-db); cluster e manifests em [`infra-k8s`](https://github.com/fiap-vcosta/infra-k8s).
@@ -76,7 +76,7 @@ Least-privilege, sem `roles/editor`, definidas em [`terraform/iam.tf`](terraform
 - `roles/dns.admin` — records DNS da demo no `infra-k8s`
 - `roles/storage.objectAdmin` no bucket de state
 - `roles/iam.serviceAccountUser` na service account padrão de compute (cluster e runtime padrão da Function)
-- Role customizada `serviceAccountIamPolicyWriter` (só `get`/`setIamPolicy`) na service account de runtime da API, para o `infra-k8s` criar o binding de Workload Identity
+- Role customizada `serviceAccountIamPolicyWriter` (só `get`/`setIamPolicy`) em cada service account de runtime, para o `infra-k8s` criar o binding de Workload Identity
 - Role customizada `gatewayEntryLb` (NEG serverless + `sslCertificates`) para o HTTPS LB da entrada no apex → API Gateway (`infra-k8s`)
 - Role customizada `ciPubSubAdmin`: tópicos e subscriptions (`get`/`list`/`create`/`delete`/`update`, `getIamPolicy`/`setIamPolicy`, `topics.attachSubscription`). Sem `publish` e sem `consume`
 - Role customizada `ciFirestoreDatabaseAdmin`: databases (`create`/`delete`/`get`/`getMetadata`/`list`/`update`), índices, locations e operations. Sem `datastore.entities.*`
@@ -98,9 +98,9 @@ Alterar qualquer um destes valores quebra os stacks vizinhos:
 | Valor | Consumido por |
 |-------|---------------|
 | Outputs de rede (`network_id`, `subnet_id`, ranges secundários) | `infra-db` (IP privado do SQL) e `infra-k8s` (cluster), via `terraform_remote_state` |
-| Output `api_runtime_service_account_email` | `infra-k8s`: anotação da service account Kubernetes e binding de Workload Identity |
+| Output `runtime_service_account_emails` | `infra-k8s`: anotação da service account Kubernetes e binding de Workload Identity. Chave = account id. O output `api_runtime_service_account_email` não existe mais; o `plan` do `infra-k8s` falha até esse stack passar a ler o mapa |
 | Outputs DNS (`dns_managed_zone_name`, `dns_name`, `dns_name_servers`) | `infra-k8s` (records `api`/`auth`); nameservers vão uma vez no registrador (Hostinger) |
-| `us-central1-docker.pkg.dev/vcosta-fiap-tech-challenge/tech-challenge` | workflows de build/push e deploy da `api` (org var `GCP_AR_REPOSITORY`) |
+| `us-central1-docker.pkg.dev/vcosta-fiap-tech-challenge/tech-challenge` | workflows de build/push e deploy (org var `GCP_AR_REPOSITORY` = `tech-challenge`). O repositório não muda; cada imagem é um pacote dentro dele |
 
 ## Domínio e nameservers
 
@@ -113,13 +113,13 @@ terraform output -json dns_name_servers
 
 No registrador (Hostinger), troque os nameservers do domínio `vcosta-fiap.online` pelos quatro NS Google dessa saída. Records `api` / `auth` **não** moram aqui — o `infra-k8s` os cria e apaga a cada ciclo de demo.
 
-O caminho da imagem não é output porque quem o consome não roda Terraform: o workflow da `api` o monta a partir de literais e org vars.
+O caminho da imagem não é output porque quem o consome não roda Terraform: o workflow o monta a partir de literais e da org var `GCP_AR_REPOSITORY` (`tech-challenge`). Os e-mails de runtime saem do output `runtime_service_account_emails`. Não há org var para esses e-mails, nem para id de tópico ou nome da instância SQL.
 
-## Workload Identity da API mora no `infra-k8s`
+## Workload Identity de runtime mora no `infra-k8s`
 
-O pool `vcosta-fiap-tech-challenge.svc.id.goog` só existe **enquanto houver um cluster com Workload Identity no projeto**. Conceder `roles/iam.workloadIdentityUser` à KSA da API daqui falharia com `Identity Pool does not exist` sempre que a demo estivesse derrubada.
+O pool `vcosta-fiap-tech-challenge.svc.id.goog` só existe **enquanto houver um cluster com Workload Identity no projeto**. Conceder `roles/iam.workloadIdentityUser` à KSA daqui falharia com `Identity Pool does not exist` sempre que a demo estivesse derrubada.
 
-Por isso este stack só cria a service account de runtime e sua `roles/cloudsql.client`; o binding KSA → service account é criado pelo `infra-k8s`, depois do cluster, e morre junto com ele.
+Por isso este stack só cria as service accounts de runtime, `roles/cloudsql.client` nas de PostgreSQL e `roles/datastore.user` nas de Firestore. O binding KSA → service account é criado pelo `infra-k8s`, depois do cluster, e morre junto com ele. Publisher e subscriber de Pub/Sub não são concedidos aqui.
 
 ## Decisões (ADRs)
 
@@ -131,9 +131,15 @@ Ver [`docs/README.md`](docs/README.md). Em especial: [GCP, região e custo](docs
 |------|--------|----------------------|
 | [`infra-bootstrap`](https://github.com/fiap-vcosta/infra-bootstrap) | Rede, WIF, AR, zona DNS | Persistente (este repo) |
 | [`infra-db`](https://github.com/fiap-vcosta/infra-db) | Cloud SQL | ADRs de banco |
+| [`infra-events`](https://github.com/fiap-vcosta/infra-events) | Tópicos Pub/Sub | README |
 | [`infra-k8s`](https://github.com/fiap-vcosta/infra-k8s) | GKE + Gateway + Cloud Run auth | [Componentes](https://github.com/fiap-vcosta/infra-k8s#componentes-nuvem) |
-| [`api`](https://github.com/fiap-vcosta/api) | App + manifests + Requestly | [ER](https://github.com/fiap-vcosta/api/blob/main/docs/08_modelo-de-dados.md) |
-| [`auth`](https://github.com/fiap-vcosta/auth) | Imagem documento → JWT | Sequência no README |
+| [`ordem-servico-service`](https://github.com/fiap-vcosta/ordem-servico-service) | Ordens de serviço | README |
+| [`estoque-service`](https://github.com/fiap-vcosta/estoque-service) | Estoque | README |
+| [`orcamento-service`](https://github.com/fiap-vcosta/orcamento-service) | Orçamento | README |
+| [`administrativo-service`](https://github.com/fiap-vcosta/administrativo-service) | Cadastros | README |
+| [`autenticacao-service`](https://github.com/fiap-vcosta/autenticacao-service) | Login e JWT | README |
+| [`building-blocks`](https://github.com/fiap-vcosta/building-blocks) | Pacote compartilhado | README |
+| [`e2e`](https://github.com/fiap-vcosta/e2e) | Compose, BDD e contratos | README |
 
 ## Agentes
 

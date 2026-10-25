@@ -18,9 +18,9 @@ output "services_range_name" {
   value       = var.services_range_name
 }
 
-output "api_runtime_service_account_email" {
-  description = "Service account de runtime da API, anotada na KSA pelo infra-k8s."
-  value       = google_service_account.api_runtime.email
+output "runtime_service_account_emails" {
+  description = "E-mails das service accounts de runtime, uma por serviço. A chave é o account id."
+  value       = { for id, sa in google_service_account.runtime : id => sa.email }
 }
 
 output "dns_managed_zone_name" {

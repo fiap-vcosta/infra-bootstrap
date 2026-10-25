@@ -161,10 +161,34 @@ variable "registry_delete_older_than" {
   default     = "86400s"
 }
 
-variable "runtime_service_account_id" {
-  type        = string
-  description = "Account ID da service account de runtime da API."
-  default     = "tech-challenge-api"
+variable "runtime_service_accounts" {
+  type = map(object({
+    cloudsql_client = bool
+    firestore_user  = bool
+  }))
+  description = "Service accounts de runtime. A chave é o account id."
+  default = {
+    "administrativo-service" = {
+      cloudsql_client = true
+      firestore_user  = false
+    }
+    "autenticacao-service" = {
+      cloudsql_client = false
+      firestore_user  = true
+    }
+    "estoque-service" = {
+      cloudsql_client = true
+      firestore_user  = false
+    }
+    "orcamento-service" = {
+      cloudsql_client = false
+      firestore_user  = true
+    }
+    "ordem-servico-service" = {
+      cloudsql_client = true
+      firestore_user  = false
+    }
+  }
 }
 
 variable "dns_managed_zone_name" {
