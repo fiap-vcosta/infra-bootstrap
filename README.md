@@ -70,18 +70,27 @@ Least-privilege, sem `roles/editor`, definidas em [`terraform/iam.tf`](terraform
 - `roles/container.admin`
 - `roles/artifactregistry.writer`
 - `roles/secretmanager.admin`
-- `roles/cloudfunctions.developer` — deploy da Function `auth` (2nd gen)
-- `roles/run.admin` — serviço Cloud Run por baixo da Function gen2
 - `roles/apigateway.admin` / `roles/servicemanagement.admin` — API Gateway no `infra-k8s`
 - `roles/dns.admin` — records DNS da demo no `infra-k8s`
 - `roles/storage.objectAdmin` no bucket de state
-- `roles/iam.serviceAccountUser` na service account padrão de compute (cluster e runtime padrão da Function)
+- `roles/iam.serviceAccountUser` na service account padrão de compute (nós do cluster)
 - Role customizada `serviceAccountIamPolicyWriter` (só `get`/`setIamPolicy`) em cada service account de runtime, para o `infra-k8s` criar o binding de Workload Identity
 - Role customizada `gatewayEntryLb` (NEG serverless + `sslCertificates`) para o HTTPS LB da entrada no apex → API Gateway (`infra-k8s`)
 - Role customizada `ciPubSubAdmin`: tópicos e subscriptions (`get`/`list`/`create`/`delete`/`update`, `getIamPolicy`/`setIamPolicy`, `topics.attachSubscription`). Sem `publish` e sem `consume`
 - Role customizada `ciFirestoreDatabaseAdmin`: databases (`create`/`delete`/`get`/`getMetadata`/`list`/`update`), índices, locations e operations. Sem `datastore.entities.*`
 
-APIs extras habilitadas para Function `auth`, API Gateway e DNS: `cloudfunctions`, `run`, `cloudbuild`, `apigateway`, `servicecontrol`, `servicemanagement`, `dns`. Mensageria e documento: `pubsub`, `firestore`.
+APIs extras habilitadas para API Gateway e DNS: `apigateway`, `servicecontrol`, `servicemanagement`, `dns`. Mensageria e documento: `pubsub`, `firestore`.
+
+`cloudfunctions`, `run` e `cloudbuild` saem da lista junto com `roles/cloudfunctions.developer` e `roles/run.admin`. O recurso de API usa `disable_on_destroy = false`, então o apply só deixa de rastreá-las. Para desligá-las no projeto, depois do apply:
+
+```bash
+gcloud services disable cloudfunctions.googleapis.com \
+  --project=vcosta-fiap-tech-challenge
+gcloud services disable run.googleapis.com cloudbuild.googleapis.com \
+  --project=vcosta-fiap-tech-challenge
+```
+
+`cloudfunctions` sai primeiro: ela depende das outras duas. Se o disable acusar recurso ainda usando a API, pare e não use `--force`.
 
 `roles/servicenetworking.networksAdmin` sai da lista: o peering do PSA passou a ser aplicado localmente. Se o binding ainda existir de antes, remova-o depois do primeiro apply:
 
@@ -132,7 +141,7 @@ Ver [`docs/README.md`](docs/README.md). Em especial: [GCP, região e custo](docs
 | [`infra-bootstrap`](https://github.com/fiap-vcosta/infra-bootstrap) | Rede, WIF, AR, zona DNS | Persistente (este repo) |
 | [`infra-db`](https://github.com/fiap-vcosta/infra-db) | Cloud SQL | ADRs de banco |
 | [`infra-events`](https://github.com/fiap-vcosta/infra-events) | Tópicos Pub/Sub | README |
-| [`infra-k8s`](https://github.com/fiap-vcosta/infra-k8s) | GKE + Gateway + Cloud Run auth | [Componentes](https://github.com/fiap-vcosta/infra-k8s#componentes-nuvem) |
+| [`infra-k8s`](https://github.com/fiap-vcosta/infra-k8s) | GKE + API Gateway | [Componentes](https://github.com/fiap-vcosta/infra-k8s#componentes-nuvem) |
 | [`ordem-servico-service`](https://github.com/fiap-vcosta/ordem-servico-service) | Ordens de serviço | README |
 | [`estoque-service`](https://github.com/fiap-vcosta/estoque-service) | Estoque | README |
 | [`orcamento-service`](https://github.com/fiap-vcosta/orcamento-service) | Orçamento | README |
