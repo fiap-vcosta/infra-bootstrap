@@ -41,7 +41,7 @@ O bucket é gerenciado por este stack e guarda o próprio state. Como este stack
 
 Este stack concede IAM. Se a service account de CI o aplicasse, ela precisaria de IAM admin sobre si mesma e poderia se auto-promover. Por isso:
 
-- **CI:** só `fmt` + `validate` ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) — não fala com a GCP
+- **CI:** só `fmt` + `validate` ([`.github/workflows/ci.yml`](.github/workflows/ci.yml) → [`fiap-vcosta/actions`](https://github.com/fiap-vcosta/actions) `ci-terraform`, sem plan) — não fala com a GCP
 - **Apply/destroy:** local, com ADC de um humano com owner
 
 ```bash
