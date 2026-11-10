@@ -44,7 +44,7 @@ resource "google_project_iam_member" "ci_gateway_entry_lb" {
 resource "google_project_iam_custom_role" "ci_pubsub_admin" {
   role_id     = "ciPubSubAdmin"
   title       = "CI Pub/Sub Admin"
-  description = "Cria, altera e apaga tópicos e subscriptions e grava o IAM desses recursos."
+  description = "Cria, altera e apaga tópicos e subscriptions (incl. DLQ) e grava o IAM desses recursos."
   permissions = [
     "pubsub.subscriptions.create",
     "pubsub.subscriptions.delete",
@@ -59,6 +59,7 @@ resource "google_project_iam_custom_role" "ci_pubsub_admin" {
     "pubsub.topics.get",
     "pubsub.topics.getIamPolicy",
     "pubsub.topics.list",
+    "pubsub.topics.publish",
     "pubsub.topics.setIamPolicy",
     "pubsub.topics.update",
   ]
