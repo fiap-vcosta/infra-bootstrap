@@ -14,7 +14,7 @@ Terraform da camada **persistente** da infraestrutura GCP do Tech Challenge FIAP
 - Outputs rígidos: `network_id`, `subnet_id`, `pods_range_name`, `services_range_name`, `runtime_service_account_emails`, `dns_managed_zone_name`, `dns_name`, `dns_name_servers`
 - Região `us-central1`, projeto `vcosta-fiap-tech-challenge`
 
-Root module: [`terraform/`](terraform/). Cloud SQL fica em [`infra-db`](https://github.com/fiap-vcosta/infra-db); cluster e manifests em [`infra-k8s`](https://github.com/fiap-vcosta/infra-k8s).
+Root module: [`terraform/`](terraform/). Cloud SQL fica no Terraform de cada serviço SQL (`*-service-pg`); cluster e Gateway em [`infra-k8s`](https://github.com/fiap-vcosta/infra-k8s).
 
 ## Plano de endereçamento
 
@@ -33,7 +33,7 @@ O range do PSA é **fixo** de propósito: com alocação automática a GCP escol
 |------|--------|
 | Bucket | `vcosta-fiap-tech-challenge-tfstate` |
 | Prefix deste repo | `infra-bootstrap` |
-| Outros prefixes | `infra-db`, `infra-k8s` |
+| Outros prefixes | `infra-k8s`, `infra-events`, prefixo de cada serviço |
 
 O bucket é gerenciado por este stack e guarda o próprio state. Como este stack **não** tem rotina de destroy, não há risco de ele apagar o state embaixo de si.
 
@@ -58,7 +58,7 @@ Todo `plan` deste stack merece leitura linha a linha: os recursos aqui sustentam
 
 O binding de `roles/iam.workloadIdentityUser` é **por repositório** (`attribute.repository`), não por org: um repo novo na org não ganha acesso à GCP só por existir. Para habilitar um repo, incluir o nome em `ci_repositories` ([`terraform/variables.tf`](terraform/variables.tf)) e aplicar localmente.
 
-Repos habilitados: `administrativo-service`, `autenticacao-service`, `e2e`, `estoque-service`, `infra-db`, `infra-events`, `infra-k8s`, `orcamento-service`, `ordem-servico-service`. Este repo não entra na lista — o CI dele não fala com a GCP. `building-blocks` também não: o pacote não fala com a GCP.
+Repos habilitados: `administrativo-service`, `autenticacao-service`, `e2e`, `estoque-service`, `infra-events`, `infra-k8s`, `orcamento-service`, `ordem-servico-service`. Este repo não entra na lista — o CI dele não fala com a GCP. `building-blocks` também não: o pacote não fala com a GCP.
 
 ## Roles da service account de CI
 
@@ -106,7 +106,7 @@ Alterar qualquer um destes valores quebra os stacks vizinhos:
 
 | Valor | Consumido por |
 |-------|---------------|
-| Outputs de rede (`network_id`, `subnet_id`, ranges secundários) | `infra-db` (IP privado do SQL) e `infra-k8s` (cluster), via `terraform_remote_state` |
+| Outputs de rede (`network_id`, `subnet_id`, ranges secundários) | Serviços SQL (IP privado Cloud SQL) e `infra-k8s` (cluster), via `terraform_remote_state` |
 | Output `runtime_service_account_emails` | `infra-k8s`: anotação da service account Kubernetes e binding de Workload Identity. Chave = account id. O output `api_runtime_service_account_email` não existe mais; o `plan` do `infra-k8s` falha até esse stack passar a ler o mapa |
 | Outputs DNS (`dns_managed_zone_name`, `dns_name`, `dns_name_servers`) | `infra-k8s` (records `api`/`auth`); nameservers vão uma vez no registrador (Hostinger) |
 | `us-central1-docker.pkg.dev/vcosta-fiap-tech-challenge/tech-challenge` | workflows de build/push e deploy (org var `GCP_AR_REPOSITORY` = `tech-challenge`). O repositório não muda; cada imagem é um pacote dentro dele |
@@ -139,7 +139,6 @@ Ver [`docs/README.md`](docs/README.md). Em especial: [GCP, região e custo](docs
 | Repo | Papel | Diagrama / doc-chave |
 |------|--------|----------------------|
 | [`infra-bootstrap`](https://github.com/fiap-vcosta/infra-bootstrap) | Rede, WIF, AR, zona DNS | Persistente (este repo) |
-| [`infra-db`](https://github.com/fiap-vcosta/infra-db) | Cloud SQL | ADRs de banco |
 | [`infra-events`](https://github.com/fiap-vcosta/infra-events) | Tópicos Pub/Sub | README |
 | [`infra-k8s`](https://github.com/fiap-vcosta/infra-k8s) | GKE + API Gateway | [Componentes](https://github.com/fiap-vcosta/infra-k8s#componentes-nuvem) |
 | [`ordem-servico-service`](https://github.com/fiap-vcosta/ordem-servico-service) | Ordens de serviço | README |
