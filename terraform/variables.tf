@@ -66,7 +66,6 @@ variable "ci_repositories" {
     "autenticacao-service",
     "e2e",
     "estoque-service",
-    "infra-db",
     "infra-events",
     "infra-k8s",
     "orcamento-service",

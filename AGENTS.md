@@ -1,11 +1,11 @@
 # Tech Challenge — Guia para agentes (`infra-bootstrap`)
 
-Terraform da camada **persistente** do projeto na GCP: habilitação de APIs, bucket de state, Workload Identity Federation, service accounts, rede (VPC/subnet/PSA), Artifact Registry e Cloud DNS (zona do domínio). Org [fiap-vcosta](https://github.com/fiap-vcosta). Cloud SQL fica em `infra-db`; cluster, Gateway e manifests em `infra-k8s`.
+Terraform da camada **persistente** do projeto na GCP: habilitação de APIs, bucket de state, Workload Identity Federation, service accounts, rede (VPC/subnet/PSA), Artifact Registry e Cloud DNS (zona do domínio). Org [fiap-vcosta](https://github.com/fiap-vcosta). Cloud SQL fica no Terraform de cada serviço SQL; cluster, Gateway e manifests em `infra-k8s`.
 
 ## Antes de mudar código
 
 1. Ler ADRs em [`docs/adrs/`](docs/adrs/) e as decisões de custo/demo já tomadas
-2. Espelhar módulos/pastas vizinhas (`infra-db`, `infra-k8s`); não inventar layout paralelo
+2. Espelhar módulos/pastas vizinhas (`infra-k8s`, `infra-events`); não inventar layout paralelo
 3. Não rodar `apply`/`destroy` sem confirmação explícita do usuário
 4. **Git:** nunca commit/push direto em `main` — branch → PR → merge (ver [`.cursor/rules/git-workflow.mdc`](.cursor/rules/git-workflow.mdc))
 
