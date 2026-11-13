@@ -120,7 +120,7 @@ cd terraform
 terraform output -json dns_name_servers
 ```
 
-No registrador (Hostinger), troque os nameservers do domínio `vcosta-fiap.online` pelos quatro NS Google dessa saída. Records `api` / `auth` **não** moram aqui — o `infra-k8s` os cria e apaga a cada ciclo de demo.
+No registrador (Hostinger), troque os nameservers do domínio `vcosta-fiap.online` pelos quatro NS Google dessa saída. Records da janela (`api.<domínio>`, apex) **não** moram aqui — o `infra-k8s` os cria e apaga a cada ciclo de demo.
 
 O caminho da imagem não é output porque quem o consome não roda Terraform: o workflow o monta a partir de literais e da org var `GCP_AR_REPOSITORY` (`tech-challenge`). Os e-mails de runtime saem do output `runtime_service_account_emails`. Não há org var para esses e-mails, nem para id de tópico ou nome da instância SQL.
 
@@ -129,6 +129,10 @@ O caminho da imagem não é output porque quem o consome não roda Terraform: o 
 O pool `vcosta-fiap-tech-challenge.svc.id.goog` só existe **enquanto houver um cluster com Workload Identity no projeto**. Conceder `roles/iam.workloadIdentityUser` à KSA daqui falharia com `Identity Pool does not exist` sempre que a demo estivesse derrubada.
 
 Por isso este stack só cria as service accounts de runtime, `roles/cloudsql.client` nas de PostgreSQL e `roles/datastore.user` nas de Firestore. O binding KSA → service account é criado pelo `infra-k8s`, depois do cluster, e morre junto com ele. Publisher e subscriber de Pub/Sub não são concedidos aqui.
+
+## Demo e custo
+
+Este stack **não** sobe/desce na janela. Cluster, Cloud SQL por serviço, tópicos e LBs entram via `demo-up` / `demo-down` no [`e2e`](https://github.com/fiap-vcosta/e2e) (gatilho manual por custo). Ver [ADR 001](docs/adrs/001-gcp-regiao-custo.md) e [`e2e` ADR 006](https://github.com/fiap-vcosta/e2e/blob/main/docs/adrs/006-deploy-demo-manuais-custo.md). Instância SQL compartilhada (`infra-db`) foi **arquivada**; SQL mora no Terraform de cada serviço ([`e2e` ADR 001](https://github.com/fiap-vcosta/e2e/blob/main/docs/adrs/001-instancia-cloud-sql-por-servico.md)).
 
 ## Decisões (ADRs)
 
@@ -147,7 +151,7 @@ Ver [`docs/README.md`](docs/README.md). Em especial: [GCP, região e custo](docs
 | [`administrativo-service`](https://github.com/fiap-vcosta/administrativo-service) | Cadastros | README |
 | [`autenticacao-service`](https://github.com/fiap-vcosta/autenticacao-service) | Login e JWT | README |
 | [`building-blocks`](https://github.com/fiap-vcosta/building-blocks) | Pacote compartilhado | README |
-| [`e2e`](https://github.com/fiap-vcosta/e2e) | Compose, BDD e contratos | README |
+| [`e2e`](https://github.com/fiap-vcosta/e2e) | Compose, BDD, demo-up/down, ADRs de sistema | README |
 
 ## Agentes
 
